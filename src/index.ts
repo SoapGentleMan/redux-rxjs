@@ -1,11 +1,14 @@
 import 'rxjs'
 import {createStore, combineReducers, applyMiddleware} from 'redux'
-import {createEpicMiddleware} from 'redux-observable'
+import {createEpicMiddleware, combineEpics} from 'redux-observable'
 import createLogger from 'redux-logger'
 
-const buttonEpics = action$ => action$.ofType('click').delayTime(1000).map(() => ({type: 'add', data: 'add'}));
+const buttonEpics = (action$, store) => action$.ofType('click').delay(1000).map(() => ({type: 'add', data: 'add'}));
+const addEpics = (action$, store) => action$.ofType('add').delay(1000).map(() => ({type: 'click', data: 'click'}));
 
-const Epics = createEpicMiddleware(buttonEpics);
+const rootEpics = combineEpics(buttonEpics, addEpics);
+
+const Epics = createEpicMiddleware(rootEpics);
 
 const middleware = [];
 middleware.push(Epics);
@@ -34,4 +37,6 @@ const store = createStore(combineReducers({
   }
 }), applyMiddleware(...middleware));
 
-document.getElementById('a').addEventListener('click', () => store.dispatch({type: 'click', data: 'click'}));
+document.getElementById('a').addEventListener('click', () => {
+  store.dispatch({type: 'click', data: 'click'});
+});
